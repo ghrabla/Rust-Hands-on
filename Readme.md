@@ -1,7 +1,5 @@
 # Distributed Task Runner
 
-Same core idea, 3 products:
-
 ## 1) CLI (Rust)
 
 - Submit jobs
