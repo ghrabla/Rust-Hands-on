@@ -23,6 +23,7 @@ impl From<RepositoryError> for AuthError {
         match err {
             RepositoryError::Conflict => AuthError::EmailTaken,
             RepositoryError::NotFound => AuthError::InvalidCredentials,
+            RepositoryError::Internal(_) => AuthError::Internal,
         }
     }
 }
@@ -51,7 +52,7 @@ impl AuthService {
         let user = self
             .user_repository
             .find_by_email(&email)
-            .await
+            .await?
             .ok_or(AuthError::InvalidCredentials)?;
 
         let valid = verify(&password, &user.password_hash).map_err(|_| AuthError::Internal)?;
@@ -71,7 +72,7 @@ impl AuthService {
 
         self.user_repository
             .find_by_id(&claims.sub)
-            .await
+            .await?
             .ok_or(AuthError::InvalidCredentials)
     }
 }
