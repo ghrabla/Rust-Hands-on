@@ -17,4 +17,5 @@ jsonwebtoken = "9"
 bcrypt = "0.15"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
+mongodb = "3"
 
