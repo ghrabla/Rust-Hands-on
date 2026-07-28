@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use mongodb::{
     bson::doc,
     error::{ErrorKind, WriteFailure},
-    options::IndexOptions,
-    Collection, Database, IndexModel,
+    Collection, Database,
 };
 use serde::{Deserialize, Serialize};
 
@@ -61,16 +60,6 @@ impl MongoUserRepository {
         Arc::new(Self {
             collection: database.collection(COLLECTION_NAME),
         })
-    }
-
-    pub async fn ensure_indexes(&self) -> mongodb::error::Result<()> {
-        let index = IndexModel::builder()
-            .keys(doc! { "email": 1 })
-            .options(IndexOptions::builder().unique(true).build())
-            .build();
-
-        self.collection.create_index(index).await?;
-        Ok(())
     }
 }
 

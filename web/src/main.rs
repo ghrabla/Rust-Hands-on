@@ -1,15 +1,10 @@
-mod app;
-mod http;
-mod infra;
-mod ports;
-
 use std::net::SocketAddr;
 use std::sync::Arc;
 
 use tracing::info;
 
-use app::AppState;
-use infra::{
+use web::app::AppState;
+use web::infra::{
     db::{mongo, user::MongoUserRepository},
     external::jwt::JwtService,
 };
@@ -35,15 +30,10 @@ async fn main() {
         .expect("failed to connect to MongoDB");
 
     let user_repository = MongoUserRepository::new(&database);
-    user_repository
-        .ensure_indexes()
-        .await
-        .expect("failed to create MongoDB indexes");
-
     let token_service = Arc::new(JwtService::new(&jwt_secret, JWT_EXPIRY_SECONDS));
 
     let state = AppState::new(user_repository, token_service);
-    let app = http::routes::build_router(state);
+    let app = web::http::routes::build_router(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     info!("listening on http://{}", addr);
