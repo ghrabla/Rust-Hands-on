@@ -1,18 +1,14 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use mongodb::{
-    bson::doc,
-    error::{ErrorKind, WriteFailure},
-    Collection, Database,
-};
+use mongodb::{bson::doc, Collection, Database};
 use serde::{Deserialize, Serialize};
 
 use crate::app::User;
+use crate::infra::db::is_duplicate_key_error;
 use crate::ports::user_repository::{RepositoryError, UserRepository};
 
 const COLLECTION_NAME: &str = "users";
-const DUPLICATE_KEY_ERROR_CODE: i32 = 11000;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct UserDocument {
@@ -39,15 +35,6 @@ impl From<UserDocument> for User {
             email: document.email,
             password_hash: document.password_hash,
         }
-    }
-}
-
-fn is_duplicate_key_error(err: &mongodb::error::Error) -> bool {
-    match err.kind.as_ref() {
-        ErrorKind::Write(WriteFailure::WriteError(write_error)) => {
-            write_error.code == DUPLICATE_KEY_ERROR_CODE
-        }
-        _ => false,
     }
 }
 

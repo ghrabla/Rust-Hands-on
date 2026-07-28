@@ -4,6 +4,7 @@ use bcrypt::{hash, verify, DEFAULT_COST};
 
 use crate::app::user::User;
 use crate::ports::{
+    token_blacklist::TokenBlacklist,
     token_service::TokenService,
     user_repository::{RepositoryError, UserRepository},
 };
@@ -31,13 +32,19 @@ impl From<RepositoryError> for AuthError {
 pub struct AuthService {
     user_repository: Arc<dyn UserRepository>,
     token_service: Arc<dyn TokenService>,
+    token_blacklist: Arc<dyn TokenBlacklist>,
 }
 
 impl AuthService {
-    pub fn new(user_repository: Arc<dyn UserRepository>, token_service: Arc<dyn TokenService>) -> Self {
+    pub fn new(
+        user_repository: Arc<dyn UserRepository>,
+        token_service: Arc<dyn TokenService>,
+        token_blacklist: Arc<dyn TokenBlacklist>,
+    ) -> Self {
         Self {
             user_repository,
             token_service,
+            token_blacklist,
         }
     }
 
@@ -70,9 +77,26 @@ impl AuthService {
             .verify_token(token)
             .map_err(|_| AuthError::InvalidCredentials)?;
 
+        if self.token_blacklist.is_revoked(token).await? {
+            return Err(AuthError::InvalidCredentials);
+        }
+
         self.user_repository
             .find_by_id(&claims.sub)
             .await?
             .ok_or(AuthError::InvalidCredentials)
+    }
+
+    pub async fn logout(&self, token: &str) -> Result<(), AuthError> {
+        let claims = self
+            .token_service
+            .verify_token(token)
+            .map_err(|_| AuthError::InvalidCredentials)?;
+
+        self.token_blacklist
+            .revoke(token, claims.exp as i64)
+            .await?;
+
+        Ok(())
     }
 }

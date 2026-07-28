@@ -11,6 +11,7 @@ use crate::http::middleware::require_auth;
 pub fn build_router(state: AppState) -> Router {
     let protected = Router::new()
         .route("/auth/me", get(handlers::auth::me))
+        .route("/auth/logout", post(handlers::auth::logout))
         .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 
     Router::new()

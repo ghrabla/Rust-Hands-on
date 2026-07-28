@@ -5,7 +5,7 @@ use tracing::info;
 
 use web::app::AppState;
 use web::infra::{
-    db::{mongo, user::MongoUserRepository},
+    db::{mongo, token_blacklist::MongoTokenBlacklist, user::MongoUserRepository},
     external::jwt::JwtService,
 };
 
@@ -30,9 +30,10 @@ async fn main() {
         .expect("failed to connect to MongoDB");
 
     let user_repository = MongoUserRepository::new(&database);
+    let token_blacklist = Arc::new(MongoTokenBlacklist::new(&database));
     let token_service = Arc::new(JwtService::new(&jwt_secret, JWT_EXPIRY_SECONDS));
 
-    let state = AppState::new(user_repository, token_service);
+    let state = AppState::new(user_repository, token_service, token_blacklist);
     let app = web::http::routes::build_router(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));

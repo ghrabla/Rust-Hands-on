@@ -5,6 +5,7 @@ use mongodb::{
 };
 
 mod m0001_create_users;
+mod m0002_create_revoked_tokens;
 
 const MIGRATIONS_COLLECTION: &str = "migrations";
 
@@ -15,7 +16,10 @@ pub trait Migration: Send + Sync {
 }
 
 fn all() -> Vec<Box<dyn Migration>> {
-    vec![Box::new(m0001_create_users::CreateUsersCollection)]
+    vec![
+        Box::new(m0001_create_users::CreateUsersCollection),
+        Box::new(m0002_create_revoked_tokens::CreateRevokedTokensCollection),
+    ]
 }
 
 fn history_collection(db: &Database) -> Collection<Document> {
