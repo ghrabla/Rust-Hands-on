@@ -17,10 +17,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      MONGODB_URI: mongodb://mongo:27017
-      MONGODB_DB_NAME: task_runner
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017}
+      MONGODB_DB_NAME: ${MONGODB_DB_NAME:-task_runner}
       JWT_SECRET: ${JWT_SECRET:-dev-only-insecure-secret-change-me}
-      RUST_LOG: info
+      RUST_LOG: ${RUST_LOG:-info}
 
 volumes:
   mongo_data:
